@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LeakyBucket</title>
+        <link rel="stylesheet" type="text/css" href="./styles.css" />
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.14.0/cdn/themes/light.css"
+        />
+        <script
+            type="module"
+            src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.14.0/cdn/shoelace-autoloader.js"
+        ></script>
+        <link
+            href="https://api.fontshare.com/v2/css?f[]=general-sans@500&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div class="content">
+            <h1 slot="header">LeakyBucket</h1>
+            <h3>Paste your link and let the ✨magic✨ happen.
+            </h3>
+            <form class="form" hx-post="/link" hx-target="#result">
+                <input
+                    type="text"
+                    name="link"
+                    placeholder="Enter your link here..."
+                ></input>
+                <button type="submit" variant="primary" outline
+                    >Let's go!</button
+                >
+            </form>
+            <div id="result" class="skeleton-effects"></div>
+        </div>
+    </body>
+</html>
