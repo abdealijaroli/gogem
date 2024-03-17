@@ -5,6 +5,7 @@ go 1.22.0
 require (
 	github.com/google/generative-ai-go v0.8.0
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	google.golang.org/api v0.149.0
 )
 
