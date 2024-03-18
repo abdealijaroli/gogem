@@ -1,33 +1,47 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"net/url"
+	"strings"
+
+	"golang.org/x/net/html"
 )
 
-// Check if URL is accessible and get Response
+// ParseURL fetches the content from the given URL and extracts all text within the body tag.
 func ParseURL(link string) (string, error) {
-
-	// Validate link
-	URL, err := url.Parse(link)
-
-	if err != nil || URL.Scheme == "" || URL.Host == "" {
-		fmt.Println(err)
-		return "", errors.New(`cannot reach URL`)
-	}
-
-	// Make a GET request
-	resp, err := http.Get(URL.String())
-
+	resp, err := http.Get(link)
 	if err != nil {
-		return err.Error(), nil
+		return "", fmt.Errorf("failed to fetch URL: %w", err)
+	}
+	defer resp.Body.Close()
+
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse HTML: %w", err)
 	}
 
-	// Read response and return to response
-	body, _ := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	return fmt.Sprintf("%v\n%v\n%v\n%v\n", resp.Status, resp.StatusCode, resp.Proto, string(body)), nil
+	var f func(*html.Node)
+	var result strings.Builder
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "body" {
+			extractTextFromNode(n, &result)
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
+
+	return result.String(), nil
+}
+
+// extractTextFromNode recursively extracts all text within the given node and its descendants.
+func extractTextFromNode(n *html.Node, result *strings.Builder) {
+	if n.Type == html.TextNode {
+		result.WriteString(n.Data)
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		extractTextFromNode(c, result)
+	}
 }
