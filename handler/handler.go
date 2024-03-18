@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/abdealijaroli/leakybucket/util"
+	"github.com/abdealijaroli/leakybucket/parser"
 )
 
 func LinkHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,8 +18,12 @@ func LinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	link := r.PostFormValue("link")
 	if link != "" {
-		response := util.GenerateLinkResponse(link)
-		fmt.Fprintf(w, "Response: %s", response)
+		resp, err := parser.ParseURL(link)
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+		} else {
+			fmt.Fprintf(w, "%s", resp)
+		}
 	} else {
 		fmt.Fprintf(w, "No input provided!")
 		w.WriteHeader(http.StatusBadRequest)
