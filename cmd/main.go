@@ -8,8 +8,8 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/abdealijaroli/leakybucket/handler"
 	"github.com/abdealijaroli/leakybucket/db"
+	"github.com/abdealijaroli/leakybucket/handler"
 )
 
 func main() {
@@ -26,15 +26,22 @@ func main() {
 	//load env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file:", err)
+		log.Fatal("Error loading .env file: ", err)
 	}
 
 	//connect db
-	db, err := db.ConnectDB()
+	database, err := db.ConnectDB()
 	if err != nil {
-		log.Fatal("Error connecting to database:", err)
+		log.Fatal("Error connecting to database: ", err)
 	}
-	defer db.Close()
+	defer database.Close()
+
+	// seed db (one time operation)
+	/* err = db.SeedDB(database)
+	if err != nil {
+		log.Fatal("Error while seeding data to database: ", err)
+	} 
+	*/
 
 	// serve static files
 	fs := http.FileServer(http.Dir("./view"))
@@ -53,6 +60,6 @@ func main() {
 
 	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		log.Fatal("Error starting server:", err)
+		log.Fatal("Error starting server: ", err)
 	}
 }
