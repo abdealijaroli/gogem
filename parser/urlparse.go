@@ -1,15 +1,17 @@
 package parser
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strings"
 
+	_ "github.com/lib/pq"
 	"golang.org/x/net/html"
 )
 
 // ParseURL fetches the content from the given URL and extracts all text within the body tag.
-func ParseURL(link string) (string, error) {
+func ParseURL(db *sql.DB, link string) (string, error) {
 	resp, err := http.Get(link)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch URL: %w", err)
@@ -33,7 +35,14 @@ func ParseURL(link string) (string, error) {
 	}
 	f(doc)
 
-	return result.String(), nil
+	rawData := result.String()
+
+	_, err = db.Exec("INSERT INTO scraped_data (link, raw_data) VALUES ($1, $2)", link, rawData)
+	if err != nil {
+		return "", fmt.Errorf("failed to insert data into database: %w", err)
+	}
+
+	return rawData, nil
 }
 
 // extractTextFromNode recursively extracts all text within the given node and its descendants.

@@ -1,7 +1,8 @@
 package model
 
 type Link struct {
+	ID          int    `json:"id"`
 	Link        string `json:"link"`
-	LinkExtract string `json:"link_extract"`
-	LinkData    string `json:"link_data"`
+	RawData     string `json:"raw_data"`
+	RefinedData string `json:"refined_data"`
 }
