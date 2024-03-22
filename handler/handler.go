@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/abdealijaroli/leakybucket/parser"
 )
@@ -21,18 +23,29 @@ func (h *Handler) LinkHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	re, err := regexp.Compile(`^https?://.{1,}\.[^\s/$.?#].[^\s]*$`)
+	if err != nil {
+		fmt.Fprintf(w, "failed to compile regex: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	link := r.PostFormValue("link")
-	if link != "" {
+
+	if !strings.HasPrefix(link, "http://") && !strings.HasPrefix(link, "https://") {
+		link = "https://" + link
+	}
+
+	if re.MatchString(link) {
 		resp, err := h.processLink(link)
 		if err != nil {
 			fmt.Fprintf(w, "failed to process link: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
 		fmt.Fprint(w, resp)
 	} else {
-		fmt.Fprintf(w, "no input provided!")
+		fmt.Fprintf(w, "invalid or no input provided!")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
