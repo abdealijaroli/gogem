@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/abdealijaroli/leakybucket/parser"
+	"github.com/abdealijaroli/leakybucket/util"
 )
 
 type Handler struct {
@@ -37,13 +38,25 @@ func (h *Handler) LinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if re.MatchString(link) {
-		resp, err := h.processLink(link)
+		err := h.processLink(link)
 		if err != nil {
 			fmt.Fprintf(w, "failed to process link: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		fmt.Fprint(w, resp)
+
+		rawData, err := h.getLinkRawDataFromDB(link)
+		if err != nil {
+			fmt.Fprintf(w, "failed to get raw data from database: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+				
+		res := util.GenerateInitialChatResponse(h.DB, rawData)
+		fmt.Fprint(w, res)
+		w.WriteHeader(http.StatusOK)
+		return
+
 	} else {
 		fmt.Fprintf(w, "invalid or no input provided!")
 		w.WriteHeader(http.StatusBadRequest)
@@ -51,11 +64,19 @@ func (h *Handler) LinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) processLink(l string) (string, error) {
-	resp, err := parser.ParseURL(h.DB, l)
+func (h *Handler) processLink(l string) error {
+	err := parser.ParseURL(h.DB, l)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse URL: %w", err)
+		return fmt.Errorf("failed to parse URL: %w", err)
 	}
+	return err
+}
 
-	return resp, nil
+func (h *Handler) getLinkRawDataFromDB(link string) (string, error) {
+	var rawData string
+	err := h.DB.QueryRow("SELECT raw_data FROM scraped_data WHERE link = $1", link).Scan(&rawData)
+	if err != nil {
+		return "", fmt.Errorf("failed to get raw data from database: %w", err)
+	}
+	return rawData, nil
 }

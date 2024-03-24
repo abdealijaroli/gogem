@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -12,7 +13,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-func GenerateLinkResponse(link string) string {
+func GenerateInitialChatResponse(db *sql.DB, rawData string) string {
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GEM_API_KEY")))
 	if err != nil {
@@ -22,7 +23,7 @@ func GenerateLinkResponse(link string) string {
 
 	basePrompt := os.Getenv("BASE_PROMPT")
 	model := client.GenerativeModel("gemini-pro")
-	prompt := genai.Text(basePrompt + link)
+	prompt := genai.Text(basePrompt + rawData)
 	iter := model.GenerateContentStream(ctx, prompt)
 
 	var response strings.Builder
