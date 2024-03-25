@@ -30,11 +30,13 @@ func main() {
 	}
 
 	//connect db
-	database, err := db.ConnectDB()
+	database, err := db.NewDB()
 	if err != nil {
 		log.Fatal("error connecting to database: ", err)
 	}
 	defer database.Close()
+
+	handler.SetDatabase(database)
 
 	// seed db (one time operation)
 	/* err = db.SeedDB(database)
@@ -48,8 +50,7 @@ func main() {
 	http.Handle("/", fs)
 
 	// handle api routes
-	h := &handler.Handler{DB: database}
-	http.HandleFunc("/link", h.LinkHandler) 
+	http.HandleFunc("/link", handler.LinkHandler) 
 
 	// start server
 	port := os.Getenv("PORT")

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -9,13 +8,17 @@ import (
 
 	"github.com/abdealijaroli/leakybucket/parser"
 	"github.com/abdealijaroli/leakybucket/util"
+	"github.com/abdealijaroli/leakybucket/db"
 )
 
-type Handler struct {
-	DB *sql.DB
+var database *db.DB
+
+// SetDatabase sets the database connection for the handler package.
+func SetDatabase(db *db.DB) {
+	database = db
 }
 
-func (h *Handler) LinkHandler(w http.ResponseWriter, r *http.Request) {
+func LinkHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("HX-Request") == "true" {
 		err := r.ParseForm()
 		if err != nil {
@@ -38,21 +41,21 @@ func (h *Handler) LinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if re.MatchString(link) {
-		err := h.processLink(link)
+		err := processLink(link)
 		if err != nil {
 			fmt.Fprintf(w, "failed to process link: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		rawData, err := h.getLinkRawDataFromDB(link)
+		rawData, err := getLinkRawDataFromDB(link)
 		if err != nil {
 			fmt.Fprintf(w, "failed to get raw data from database: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 				
-		res := util.GenerateInitialChatResponse(h.DB, rawData)
+		res := util.GenerateInitialChatResponse(database.DB, rawData)
 		fmt.Fprint(w, res)
 		w.WriteHeader(http.StatusOK)
 		return
@@ -64,17 +67,17 @@ func (h *Handler) LinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) processLink(l string) error {
-	err := parser.ParseURL(h.DB, l)
+func processLink(l string) error {
+	err := parser.ParseURL(database.DB, l)
 	if err != nil {
 		return fmt.Errorf("failed to parse URL: %w", err)
 	}
 	return err
 }
 
-func (h *Handler) getLinkRawDataFromDB(link string) (string, error) {
+func getLinkRawDataFromDB(link string) (string, error) {
 	var rawData string
-	err := h.DB.QueryRow("SELECT raw_data FROM scraped_data WHERE link = $1", link).Scan(&rawData)
+	err := database.DB.QueryRow("SELECT raw_data FROM scraped_data WHERE link = $1", link).Scan(&rawData)
 	if err != nil {
 		return "", fmt.Errorf("failed to get raw data from database: %w", err)
 	}
