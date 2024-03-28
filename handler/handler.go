@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gorilla/sessions"
+
 	"github.com/abdealijaroli/leakybucket/parser"
 	"github.com/abdealijaroli/leakybucket/util"
 	"github.com/abdealijaroli/leakybucket/db"
@@ -18,7 +20,18 @@ func SetDatabase(db *db.DB) {
 	database = db
 }
 
+var store = sessions.NewCookieStore([]byte("SESSION_SECRET"))
+
 func LinkHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	link := r.PostFormValue("link")
+	if link == "" {
+		link = session.Values["link"].(string)
+	} else {
+		session.Values["link"] = link
+		session.Save(r, w)
+	}
+
 	if r.Header.Get("HX-Request") == "true" {
 		err := r.ParseForm()
 		if err != nil {
@@ -33,8 +46,6 @@ func LinkHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	link := r.PostFormValue("link")
 
 	if !strings.HasPrefix(link, "http://") && !strings.HasPrefix(link, "https://") {
 		link = "https://" + link
