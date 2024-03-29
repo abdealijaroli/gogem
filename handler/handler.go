@@ -20,7 +20,7 @@ func SetDatabase(db *db.DB) {
 	database = db
 }
 
-var store = sessions.NewCookieStore([]byte("SESSION_SECRET"))
+var store = sessions.NewCookieStore([]byte("SESSION_SECRET")) 
 
 func LinkHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
