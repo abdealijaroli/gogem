@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gorilla/sessions"
+	// "github.com/gorilla/sessions"
 
 	"github.com/abdealijaroli/leakybucket/parser"
 	"github.com/abdealijaroli/leakybucket/util"
@@ -20,17 +20,17 @@ func SetDatabase(db *db.DB) {
 	database = db
 }
 
-var store = sessions.NewCookieStore([]byte("SESSION_SECRET")) 
+// var store = sessions.NewCookieStore([]byte("SESSION_SECRET")) 
 
 func LinkHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "session")
-	link := r.PostFormValue("link")
-	if link == "" {
-		link = session.Values["link"].(string)
-	} else {
-		session.Values["link"] = link
-		session.Save(r, w)
-	}
+	// session, _ := store.Get(r, "session")
+	// link := r.PostFormValue("link")
+	// if link == "" {
+	// 	link = session.Values["link"].(string)
+	// } else {
+	// 	session.Values["link"] = link
+	// 	session.Save(r, w)
+	// }
 
 	if r.Header.Get("HX-Request") == "true" {
 		err := r.ParseForm()
