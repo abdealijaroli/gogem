@@ -24,7 +24,7 @@ func SetDatabase(db *db.DB) {
 
 func LinkHandler(w http.ResponseWriter, r *http.Request) {
 	// session, _ := store.Get(r, "session")
-	// link := r.PostFormValue("link")
+	link := r.PostFormValue("link")
 	// if link == "" {
 	// 	link = session.Values["link"].(string)
 	// } else {
