@@ -40,11 +40,10 @@ func main() {
 	handler.SetDatabase(database)
 
 	// seed db (one time operation)
-	/* err = db.SeedDB(database)
-	if err != nil {
-		log.Fatal("error while seeding data to database: ", err)
-	}
-	*/
+	// err = db.SeedDB(database)
+	// if err != nil {
+	// 	log.Fatal("error while seeding data to database: ", err)
+	// }
 
 	// serve static files
 	fs := http.FileServer(http.Dir("./view"))

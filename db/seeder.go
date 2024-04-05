@@ -1,13 +1,12 @@
 package db
 
 import (
-	"database/sql"
 	"log"
 
 	_ "github.com/lib/pq"
 )
 
-func SeedDB(db *sql.DB) error {
+func SeedDB(db *DB) error {
 	err := CreateTables(db) 
 	if err != nil {
 		log.Fatal(err)
@@ -16,7 +15,7 @@ func SeedDB(db *sql.DB) error {
 	return err
 }
 
-func CreateTables(db *sql.DB) error {
+func CreateTables(db *DB) error {
 	query := `CREATE TABLE IF NOT EXISTS scraped_data (
 			id SERIAL PRIMARY KEY,
             link TEXT NOT NULL,
